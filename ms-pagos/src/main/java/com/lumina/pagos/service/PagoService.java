@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 public class PagoService {
 
     private final PagoRepository pagoRepository;
+    private final PreferenceClient preferenceClient;
+    private final PaymentClient paymentClient;
 
     @Value("${mercadopago.notification-url}")
     private String notificationUrl;
@@ -78,8 +80,7 @@ public class PagoService {
             PreferenceRequest preferenceRequest = prefBuilder.build();
 
             // Crear preferencia en MercadoPago
-            PreferenceClient client = new PreferenceClient();
-            Preference preference = client.create(preferenceRequest);
+            Preference preference = preferenceClient.create(preferenceRequest);
 
             // Persistir el pago en la BD
             Pago pago = Pago.builder()
@@ -117,7 +118,6 @@ public class PagoService {
         }
 
         try {
-            PaymentClient paymentClient = new PaymentClient();
             Payment payment = paymentClient.get(resourceId);
 
             String externalReference = payment.getExternalReference();

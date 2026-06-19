@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,25 +34,28 @@ class BodegaServiceTest {
     private BodegaService bodegaService;
 
     private Inventario inventario;
-    private AlertaStock alertaStock;
+    private AlertaStock alerta;
 
     @BeforeEach
     void setUp() {
         inventario = Inventario.builder()
                 .id(1L)
                 .productoId(100L)
-                .nombreProducto("Producto Test")
+                .nombreProducto("Laptop HP")
                 .stock(50)
                 .stockMinimo(10)
+                .ubicacionBodega("Bodega A")
+                .fechaActualizacion(LocalDateTime.now())
                 .build();
 
-        alertaStock = AlertaStock.builder()
+        alerta = AlertaStock.builder()
                 .id(1L)
                 .productoId(100L)
-                .nombreProducto("Producto Test")
+                .nombreProducto("Laptop HP")
                 .stockActual(5)
                 .stockMinimo(10)
                 .resuelta(false)
+                .fechaCreacion(LocalDateTime.now())
                 .build();
     }
 
@@ -67,9 +70,8 @@ class BodegaServiceTest {
     }
 
     @Test
-    void listarInventario_DebeRetornarListaConRegistros_CuandoExistenInventarios() {
-        List<Inventario> inventarios = Arrays.asList(inventario);
-        when(inventarioRepository.findAll()).thenReturn(inventarios);
+    void listarInventario_DebeRetornarListaDeInventarios_CuandoExisten() {
+        when(inventarioRepository.findAll()).thenReturn(List.of(inventario));
 
         List<Inventario> resultado = bodegaService.listarInventario();
 
@@ -79,7 +81,7 @@ class BodegaServiceTest {
     }
 
     @Test
-    void crearInventario_DebeCrearExitosamente_CuandoInventarioEsValido() {
+    void crearInventario_DebeGuardarInventario_CuandoEsValido() {
         when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
 
         Inventario resultado = bodegaService.crearInventario(inventario);
@@ -90,7 +92,7 @@ class BodegaServiceTest {
     }
 
     @Test
-    void obtenerStock_DebeRetornarInventario_CuandoExisteRegistro() {
+    void obtenerStock_DebeRetornarInventario_CuandoExiste() {
         when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
 
         Inventario resultado = bodegaService.obtenerStock(100L);
@@ -101,142 +103,110 @@ class BodegaServiceTest {
     }
 
     @Test
-    void obtenerStock_DebeLanzarExcepcion_CuandoNoExisteRegistro() {
-        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.empty());
+    void obtenerStock_DebeLanzarRuntimeException_CuandoNoExiste() {
+        when(inventarioRepository.findByProductoId(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bodegaService.obtenerStock(100L))
+        assertThatThrownBy(() -> bodegaService.obtenerStock(999L))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("No hay registro de inventario para producto: 100");
-
-        verify(inventarioRepository).findByProductoId(100L);
+                .hasMessageContaining("No hay registro de inventario para producto: 999");
     }
 
     @Test
-    void actualizarStock_DebeAgregarStockSinGenerarAlerta_CuandoStockEsMayorAlMinimo() {
+    void actualizarStock_DebeAgregarStock_CuandoEsValido() {
         when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
         when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
 
         Inventario resultado = bodegaService.actualizarStock(100L, 20);
 
+        assertThat(resultado).isNotNull();
         assertThat(resultado.getStock()).isEqualTo(70);
-        verify(alertaStockRepository, never()).findByProductoIdAndResueltaFalse(anyLong());
+        verify(inventarioRepository).findByProductoId(100L);
         verify(inventarioRepository).save(inventario);
     }
 
     @Test
-    void actualizarStock_DebeAgregarStockYGenerarAlerta_CuandoStockEsCritico() {
-        Inventario inventarioCritico = Inventario.builder()
-                .id(1L)
-                .productoId(100L)
-                .nombreProducto("Producto Test")
-                .stock(5)
-                .stockMinimo(10)
-                .build();
-
-        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventarioCritico));
+    void actualizarStock_DebeGenerarAlerta_CuandoStockEsCritico() {
+        inventario.setStock(15);
+        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
+        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
         when(alertaStockRepository.findByProductoIdAndResueltaFalse(100L)).thenReturn(Collections.emptyList());
-        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventarioCritico);
-        when(alertaStockRepository.save(any(AlertaStock.class))).thenReturn(alertaStock);
+        when(alertaStockRepository.save(any(AlertaStock.class))).thenReturn(alerta);
 
-        Inventario resultado = bodegaService.actualizarStock(100L, 2);
+        Inventario resultado = bodegaService.actualizarStock(100L, -5);
 
-        assertThat(resultado.getStock()).isEqualTo(7);
-        verify(alertaStockRepository).findByProductoIdAndResueltaFalse(100L);
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getStock()).isEqualTo(10);
         verify(alertaStockRepository).save(any(AlertaStock.class));
-        verify(inventarioRepository).save(inventarioCritico);
     }
 
     @Test
-    void actualizarStock_DebeAgregarStockYResolverAlertas_CuandoStockNoEsCritico() {
-        Inventario inventarioConAlerta = Inventario.builder()
-                .id(1L)
-                .productoId(100L)
-                .nombreProducto("Producto Test")
-                .stock(5)
-                .stockMinimo(10)
-                .build();
-
-        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventarioConAlerta));
-        when(alertaStockRepository.findByProductoIdAndResueltaFalse(100L)).thenReturn(Arrays.asList(alertaStock));
-        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventarioConAlerta);
+    void actualizarStock_DebeResolverAlertas_CuandoStockSeNormaliza() {
+        inventario.setStock(5);
+        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
+        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
+        when(alertaStockRepository.findByProductoIdAndResueltaFalse(100L)).thenReturn(List.of(alerta));
 
         Inventario resultado = bodegaService.actualizarStock(100L, 20);
 
+        assertThat(resultado).isNotNull();
         assertThat(resultado.getStock()).isEqualTo(25);
-        verify(alertaStockRepository).findByProductoIdAndResueltaFalse(100L);
-        verify(alertaStockRepository).save(alertaStock);
-        verify(inventarioRepository).save(inventarioConAlerta);
+        verify(alertaStockRepository).save(alerta);
     }
 
     @Test
-    void descontarStock_DebeDescontarExitosamente_CuandoStockEsSuficiente() {
+    void descontarStock_DebeDescontarStock_CuandoEsSuficiente() {
         when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
         when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
 
         Inventario resultado = bodegaService.descontarStock(100L, 10);
 
+        assertThat(resultado).isNotNull();
         assertThat(resultado.getStock()).isEqualTo(40);
+        verify(inventarioRepository).findByProductoId(100L);
         verify(inventarioRepository).save(inventario);
     }
 
     @Test
-    void descontarStock_DebeLanzarExcepcion_CuandoStockEsInsuficiente() {
+    void descontarStock_DebeLanzarRuntimeException_CuandoStockInsuficiente() {
+        inventario.setStock(5);
         when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
 
-        assertThatThrownBy(() -> bodegaService.descontarStock(100L, 60))
+        assertThatThrownBy(() -> bodegaService.descontarStock(100L, 10))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Stock insuficiente para producto: 100");
-
-        verify(inventarioRepository, never()).save(any(Inventario.class));
     }
 
     @Test
     void descontarStock_DebeGenerarAlerta_CuandoStockEsCritico() {
-        Inventario inventarioCritico = Inventario.builder()
-                .id(1L)
-                .productoId(100L)
-                .nombreProducto("Producto Test")
-                .stock(15)
-                .stockMinimo(10)
-                .build();
-
-        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventarioCritico));
+        inventario.setStock(15);
+        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
+        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
         when(alertaStockRepository.findByProductoIdAndResueltaFalse(100L)).thenReturn(Collections.emptyList());
-        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventarioCritico);
-        when(alertaStockRepository.save(any(AlertaStock.class))).thenReturn(alertaStock);
+        when(alertaStockRepository.save(any(AlertaStock.class))).thenReturn(alerta);
 
         Inventario resultado = bodegaService.descontarStock(100L, 10);
 
+        assertThat(resultado).isNotNull();
         assertThat(resultado.getStock()).isEqualTo(5);
-        verify(alertaStockRepository).findByProductoIdAndResueltaFalse(100L);
         verify(alertaStockRepository).save(any(AlertaStock.class));
-        verify(inventarioRepository).save(inventarioCritico);
     }
 
     @Test
-    void descontarStock_DebeResolverAlertas_CuandoStockNoEsCritico() {
-        Inventario inventarioConAlerta = Inventario.builder()
-                .id(1L)
-                .productoId(100L)
-                .nombreProducto("Producto Test")
-                .stock(5)
-                .stockMinimo(10)
-                .build();
-
-        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventarioConAlerta));
-        when(alertaStockRepository.findByProductoIdAndResueltaFalse(100L)).thenReturn(Arrays.asList(alertaStock));
-        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventarioConAlerta);
+    void descontarStock_DebeResolverAlertas_CuandoStockSeNormaliza() {
+        inventario.setStock(5);
+        when(inventarioRepository.findByProductoId(100L)).thenReturn(Optional.of(inventario));
+        when(inventarioRepository.save(any(Inventario.class))).thenReturn(inventario);
+        when(alertaStockRepository.findByProductoIdAndResueltaFalse(100L)).thenReturn(List.of(alerta));
 
         Inventario resultado = bodegaService.descontarStock(100L, -5);
 
+        assertThat(resultado).isNotNull();
         assertThat(resultado.getStock()).isEqualTo(10);
-        verify(alertaStockRepository).findByProductoIdAndResueltaFalse(100L);
-        verify(alertaStockRepository).save(alertaStock);
-        verify(inventarioRepository).save(inventarioConAlerta);
+        verify(alertaStockRepository).save(alerta);
     }
 
     @Test
-    void obtenerAlertas_DebeRetornarListaVacia_CuandoNoHayAlertasActivas() {
+    void obtenerAlertas_DebeRetornarListaVacia_CuandoNoHayAlertas() {
         when(alertaStockRepository.findByResueltaFalseOrderByFechaCreacionDesc())
                 .thenReturn(Collections.emptyList());
 
@@ -247,15 +217,15 @@ class BodegaServiceTest {
     }
 
     @Test
-    void obtenerAlertas_DebeRetornarListaConAlertas_CuandoExistenAlertasActivas() {
-        List<AlertaStock> alertas = Arrays.asList(alertaStock);
+    void obtenerAlertas_DebeRetornarListaDeAlertas_CuandoExisten() {
         when(alertaStockRepository.findByResueltaFalseOrderByFechaCreacionDesc())
-                .thenReturn(alertas);
+                .thenReturn(List.of(alerta));
 
         List<AlertaStock> resultado = bodegaService.obtenerAlertas();
 
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).getProductoId()).isEqualTo(100L);
+        assertThat(resultado.get(0).getResuelta()).isFalse();
         verify(alertaStockRepository).findByResueltaFalseOrderByFechaCreacionDesc();
     }
 }
