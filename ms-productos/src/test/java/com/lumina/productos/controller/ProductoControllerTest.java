@@ -36,7 +36,6 @@ class ProductoControllerTest {
     private ProductoService productoService;
 
     private Producto producto;
-    private Producto productoInactivo;
     private Marca marca;
 
     @BeforeEach
@@ -56,17 +55,6 @@ class ProductoControllerTest {
                 .categoria("Calzado")
                 .marca(marca)
                 .activo(true)
-                .build();
-
-        productoInactivo = Producto.builder()
-                .id(2L)
-                .nombre("Camiseta Old")
-                .descripcion("Camiseta antigua")
-                .precio(new BigDecimal("29.99"))
-                .imagenUrl("camiseta.jpg")
-                .categoria("Ropa")
-                .marca(marca)
-                .activo(false)
                 .build();
     }
 

@@ -28,22 +28,10 @@ class DeliveryServiceTest {
     private DeliveryService deliveryService;
 
     private Delivery delivery;
-    private Delivery deliveryGuardado;
 
     @BeforeEach
     void setUp() {
         delivery = Delivery.builder()
-                .id(1L)
-                .ordenId("ORD-123")
-                .usuarioId(100L)
-                .direccionEntrega("Calle Principal 123")
-                .estado(EstadoDelivery.PREPARANDO)
-                .repartidorNombre("Juan Pérez")
-                .fechaEstimadaEntrega(LocalDateTime.now().plusDays(2))
-                .fechaCreacion(LocalDateTime.now())
-                .build();
-
-        deliveryGuardado = Delivery.builder()
                 .id(1L)
                 .ordenId("ORD-123")
                 .usuarioId(100L)
