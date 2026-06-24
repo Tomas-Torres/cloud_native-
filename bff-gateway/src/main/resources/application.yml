@@ -20,8 +20,45 @@ microservices:
   pagos:
     url: ${MS_PAGOS_URL:http://localhost:8086}
 
+# Circuit Breaker (Resilience4j) - protege las llamadas a los microservicios
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+        # Los errores HTTP del microservicio (4xx/5xx) NO abren el circuito;
+        # solo lo hacen los fallos de conexion / timeouts (servicio caido).
+        ignore-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientResponseException
+    instances:
+      usuarios:
+        base-config: default
+      productos:
+        base-config: default
+      bodega:
+        base-config: default
+      carrito:
+        base-config: default
+      delivery:
+        base-config: default
+      pagos:
+        base-config: default
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true

@@ -1,5 +1,6 @@
 package com.lumina.bff.controller;
 
+import com.lumina.bff.config.CircuitBreakerHelper;
 import com.lumina.bff.config.MicroservicesConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,33 +15,34 @@ public class DeliveryProxyController {
 
     private final WebClient.Builder webClientBuilder;
     private final MicroservicesConfig config;
+    private final CircuitBreakerHelper circuitBreaker;
 
     @GetMapping("/{id}")
     public Mono<ResponseEntity<String>> obtenerDelivery(@PathVariable Long id) {
-        return webClientBuilder.build()
+        return circuitBreaker.protect("delivery", webClientBuilder.build()
                 .get()
                 .uri(config.getDeliveryUrl() + "/api/delivery/" + id)
                 .retrieve()
-                .toEntity(String.class);
+                .toEntity(String.class));
     }
 
     @GetMapping("/orden/{ordenId}")
     public Mono<ResponseEntity<String>> obtenerDeliveryPorOrden(@PathVariable String ordenId) {
-        return webClientBuilder.build()
+        return circuitBreaker.protect("delivery", webClientBuilder.build()
                 .get()
                 .uri(config.getDeliveryUrl() + "/api/delivery/orden/" + ordenId)
                 .retrieve()
-                .toEntity(String.class);
+                .toEntity(String.class));
     }
 
     @PatchMapping("/{id}/estado")
     public Mono<ResponseEntity<String>> actualizarEstado(@PathVariable Long id, @RequestBody String body) {
-        return webClientBuilder.build()
+        return circuitBreaker.protect("delivery", webClientBuilder.build()
                 .patch()
                 .uri(config.getDeliveryUrl() + "/api/delivery/" + id + "/estado")
                 .bodyValue(body)
                 .header("Content-Type", "application/json")
                 .retrieve()
-                .toEntity(String.class);
+                .toEntity(String.class));
     }
 }

@@ -1,5 +1,6 @@
 package com.lumina.bff.controller;
 
+import com.lumina.bff.config.CircuitBreakerHelper;
 import com.lumina.bff.config.MicroservicesConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,11 @@ public class UsuariosProxyController {
 
     private final WebClient.Builder webClientBuilder;
     private final MicroservicesConfig config;
+    private final CircuitBreakerHelper circuitBreaker;
 
     @PostMapping("/registro")
     public Mono<ResponseEntity<String>> registrar(@RequestBody String body) {
-        return webClientBuilder.build()
+        return circuitBreaker.protect("usuarios", webClientBuilder.build()
                 .post()
                 .uri(config.getUsuariosUrl() + "/api/usuarios/registro")
                 .bodyValue(body)
@@ -28,12 +30,12 @@ public class UsuariosProxyController {
                 .onErrorResume(WebClientResponseException.class, ex ->
                         Mono.just(ResponseEntity.status(ex.getStatusCode())
                                 .header("Content-Type", "application/json")
-                                .body(ex.getResponseBodyAsString())));
+                                .body(ex.getResponseBodyAsString()))));
     }
 
     @PostMapping("/login")
     public Mono<ResponseEntity<String>> login(@RequestBody String body) {
-        return webClientBuilder.build()
+        return circuitBreaker.protect("usuarios", webClientBuilder.build()
                 .post()
                 .uri(config.getUsuariosUrl() + "/api/usuarios/login")
                 .bodyValue(body)
@@ -43,12 +45,12 @@ public class UsuariosProxyController {
                 .onErrorResume(WebClientResponseException.class, ex ->
                         Mono.just(ResponseEntity.status(ex.getStatusCode())
                                 .header("Content-Type", "application/json")
-                                .body(ex.getResponseBodyAsString())));
+                                .body(ex.getResponseBodyAsString()))));
     }
 
     @GetMapping("/{id}")
     public Mono<ResponseEntity<String>> obtenerUsuario(@PathVariable Long id) {
-        return webClientBuilder.build()
+        return circuitBreaker.protect("usuarios", webClientBuilder.build()
                 .get()
                 .uri(config.getUsuariosUrl() + "/api/usuarios/" + id)
                 .retrieve()
@@ -56,6 +58,6 @@ public class UsuariosProxyController {
                 .onErrorResume(WebClientResponseException.class, ex ->
                         Mono.just(ResponseEntity.status(ex.getStatusCode())
                                 .header("Content-Type", "application/json")
-                                .body(ex.getResponseBodyAsString())));
+                                .body(ex.getResponseBodyAsString()))));
     }
 }

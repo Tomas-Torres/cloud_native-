@@ -8,8 +8,36 @@ microservicios internos mediante `WebClient`.
 
 - Java 17, Spring Boot 3.2
 - Spring WebFlux (`WebClient`) + Spring Web (MVC)
+- Resilience4j (Circuit Breaker reactivo)
 - springdoc-openapi (Swagger UI)
 - JaCoCo (cobertura)
+
+## Circuit Breaker (Resilience4j)
+
+Todas las llamadas del gateway hacia los microservicios estan protegidas por un
+**circuit breaker** (uno por microservicio), centralizado en
+`CircuitBreakerHelper`. Esto evita que un microservicio caido sature al BFF y
+permite degradar el servicio de forma controlada.
+
+Comportamiento:
+
+- Si un microservicio **no responde** (conexion rechazada / timeout), el BFF
+  devuelve `503 Service Unavailable` con un mensaje JSON de fallback.
+- Tras varios fallos consecutivos, el circuito pasa a estado **OPEN** y las
+  siguientes peticiones fallan rapido (sin esperar al microservicio) hasta que
+  el circuito vuelve a **HALF_OPEN** y se recupera automaticamente.
+- Los **errores HTTP del microservicio** (4xx/5xx) NO abren el circuito: indican
+  que el servicio esta vivo y se propagan tal cual.
+
+Parametros (en `application.yml`): ventana de 10 llamadas, umbral de fallo 50%,
+10s en estado abierto, transicion automatica a half-open.
+
+Estado de los circuitos (Actuator):
+
+```
+GET http://localhost:8080/actuator/health
+GET http://localhost:8080/actuator/circuitbreakers
+```
 
 ## Configuracion
 
