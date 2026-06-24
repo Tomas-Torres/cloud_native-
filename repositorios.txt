@@ -60,8 +60,19 @@
 3. DOCUMENTACION
 ---------------------------------------------------------------
    - README.md principal con instrucciones de ejecucion
+   - README.md en cada componente (frontend, bff-gateway y 6 microservicios)
+   - /docs/Diagrama_Arquitectura.md (esquema de la arquitectura)
+   - /docs/Descripcion_Persistencia.md (persistencia JPA/Hibernate)
+   - /docs/Informe_Pruebas_Unitarias.md (cobertura JaCoCo, todos >60%)
    - /docs/Analisis_Patrones_Arquetipos.md
    - /docs/Plan_Branching.md
    - /docs/Arquetipos_Maven.md
+
+4. PRUEBAS Y COBERTURA
+---------------------------------------------------------------
+   - Pruebas unitarias e integracion con JUnit 5 + Mockito + AssertJ
+   - Cobertura medida con JaCoCo (reporte en target/site/jacoco/index.html)
+   - Cobertura global de lineas del backend: 87.6% (minimo exigido: 60%)
+   - Pruebas E2E del frontend con Cypress (/frontend/cypress)
 
 ===============================================================
