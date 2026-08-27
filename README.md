@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Tienda Retail Lumina - Microservicios
 
 Plataforma de retail migrada de monolito a **Arquitectura de Microservicios** para resolver problemas de saturacion en horas peak.
@@ -132,3 +133,6 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 Accede con la cuenta admin para:
 - **Productos**: Crear, editar y eliminar productos del catalogo
 - **Bodega**: Ver inventario, ajustar stock (agregar/descontar) y ver alertas de stock critico
+=======
+# cloud_native-
+>>>>>>> 7295d3e95695c368e0f4e8503cea6a99ce6516e8
