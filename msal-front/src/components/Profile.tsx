@@ -83,15 +83,16 @@ export function Profile() {
         <>
           <h2>ID Token (JWT · carnet)</h2>
           <p className="token-hint">
-            Lo usa tu app para saber quién entró. No lo envíes a la API como
-            pase.
+            Pase para <code>msal-api</code> (scope{' '}
+            <code>access_as_user</code>). Mándalo como Bearer a{' '}
+            <code>GET /api/me</code> o usa el botón de integración.
           </p>
           <pre className="token-box">{tokens.idToken}</pre>
 
           <h2>Access Token (JWT · pase)</h2>
           <p className="token-hint">
-            Este es el que más adelante iría al API / Gateway. Aquí lo mostramos
-            solo para inspeccionarlo en clase.
+            Lo usa tu app para saber quién entró. No lo envíes a la API como
+            pase.
           </p>
           <pre className="token-box">{tokens.accessToken}</pre>
         </>
