@@ -20,6 +20,10 @@ microservices:
   pagos:
     url: ${MS_PAGOS_URL:http://localhost:8086}
 
+# JWT Compartido con ms-usuarios(mismo secreto para poder validar los tokens)
+jwt:
+  secret: ${JWT_SECRET:MiClaveSecretaParaJWTLuminaRetail2024SuperSegura256bits!}
+
 # Circuit Breaker (Resilience4j) - protege las llamadas a los microservicios
 resilience4j:
   circuitbreaker:

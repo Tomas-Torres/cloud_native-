@@ -30,10 +30,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 // login/registro de clientes: sin token todavia, es donde se consigue uno
                 .requestMatchers("/api/usuarios/login", "/api/usuarios/registro").permitAll()
-                // TODO (equipo): una vez que Front Publico/Front Cliente esten
-                // definidos, revisar si el catalogo de productos debe ser
-                // publico (GET) sin login. Por ahora todo exige token.
-                //
+                // Catalogo de productos: lectura publica, sin login (tienda visible sin loguearse)
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/productos/**").permitAll()
                 // Rutas de escritura de Productos/Bodega: solo ADMIN. Estas son
                 // las que usa el Front Admin.
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/productos/**").hasRole("ADMIN")
