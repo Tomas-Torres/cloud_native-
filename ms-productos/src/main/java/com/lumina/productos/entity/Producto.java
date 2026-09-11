@@ -6,7 +6,11 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "productos")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Producto {
 
     @Id
@@ -21,6 +25,9 @@ public class Producto {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
+    @Column(nullable = false)
+    private Integer stock;
+
     private String imagenUrl;
 
     private String categoria;
@@ -34,5 +41,6 @@ public class Producto {
     @PrePersist
     protected void onCreate() {
         if (activo == null) activo = true;
+        if (stock == null) stock = 0;
     }
 }
