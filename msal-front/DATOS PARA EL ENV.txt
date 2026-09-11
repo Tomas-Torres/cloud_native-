@@ -1,0 +1,5 @@
+Application (client) ID: 262adf80-2a1e-4193-a2bc-df28650eb1bc
+
+Directory(tenant) ID: f7592987-1fb4-4045-afea-34bb5a3fe9d7
+
+scope para vite-azure: api://262adf80-2a1e-4193-a2bc-df28650eb1bc/access_as_admin
