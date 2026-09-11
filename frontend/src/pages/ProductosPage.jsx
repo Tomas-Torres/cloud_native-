@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { productosService } from '../services/api';
 
 function ProductosPage() {
+  console.log('🔥 PRODUCTOS PAGE SE MONTÓ');
   const [productos, setProductos] = useState([]);
   const [search, setSearch] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);

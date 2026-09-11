@@ -42,4 +42,11 @@ public class UsuarioController {
         usuario.setPassword(null);
         return ResponseEntity.ok(usuario);
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<Usuario>> listarUsuarios() {
+        java.util.List<Usuario> usuarios = usuarioService.listarTodos();
+        usuarios.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(usuarios);
+    }
 }

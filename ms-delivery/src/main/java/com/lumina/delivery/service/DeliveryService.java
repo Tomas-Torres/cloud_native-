@@ -59,4 +59,7 @@ public class DeliveryService {
         log.info("Delivery {} actualizado a estado: {}", id, nuevoEstado);
         return deliveryRepository.save(delivery);
     }
+    public java.util.List<Delivery> listarTodos() {
+        return deliveryRepository.findAll();
+    }
 }

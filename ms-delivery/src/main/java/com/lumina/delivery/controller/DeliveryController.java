@@ -37,4 +37,9 @@ public class DeliveryController {
         String descripcion = body.getOrDefault("descripcion", "Estado actualizado a " + estado);
         return ResponseEntity.ok(deliveryService.actualizarEstado(id, estado, descripcion));
     }
+    
+    @GetMapping
+    public ResponseEntity<java.util.List<Delivery>> listarTodos() {
+        return ResponseEntity.ok(deliveryService.listarTodos());
+    }
 }

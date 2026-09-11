@@ -45,4 +45,13 @@ public class DeliveryProxyController {
                 .retrieve()
                 .toEntity(String.class));
     }
+    @GetMapping
+    public Mono<ResponseEntity<String>> listarDeliveries() {
+        return circuitBreaker.protect("delivery", webClientBuilder.build()
+                .get()
+                .uri(config.getDeliveryUrl() + "/api/delivery")
+                .retrieve()
+                .toEntity(String.class));
+    }
+
 }

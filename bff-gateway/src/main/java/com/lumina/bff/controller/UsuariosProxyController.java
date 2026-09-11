@@ -60,4 +60,13 @@ public class UsuariosProxyController {
                                 .header("Content-Type", "application/json")
                                 .body(ex.getResponseBodyAsString()))));
     }
+
+    @GetMapping
+    public Mono<ResponseEntity<String>> listarUsuarios() {
+        return circuitBreaker.protect("usuarios", webClientBuilder.build()
+                .get()
+                .uri(config.getUsuariosUrl() + "/api/usuarios")
+                .retrieve()
+                .toEntity(String.class));
+        }       
 }

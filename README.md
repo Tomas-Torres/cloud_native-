@@ -109,6 +109,15 @@ npm run dev
 | Email | admin@lumina.cl |
 | Password | admin123 |
 
+### Credenciales de Usuario Prueba(Recomendado)
+
+| Campo | Valor |
+|-------|-------|
+| Email | user@lumina.cl |
+| Password | user1234 |
+
+
+
 ## Comandos Utiles
 
 ```bash

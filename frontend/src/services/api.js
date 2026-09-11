@@ -30,6 +30,7 @@ export const authService = {
   login: (credentials) => api.post('/usuarios/login', credentials),
   registro: (data) => api.post('/usuarios/registro', data),
   perfil: (id) => api.get(`/usuarios/${id}`),
+  listarTodos: () => api.get('/usuarios'),
 };
 
 export const productosService = {
@@ -56,6 +57,7 @@ export const pagosService = {
 export const deliveryService = {
   obtener: (id) => api.get(`/delivery/${id}`),
   obtenerPorOrden: (ordenId) => api.get(`/delivery/orden/${ordenId}`),
+  listarTodos: () => api.get('/delivery'),
 };
 
 export const bodegaService = {
@@ -66,5 +68,6 @@ export const bodegaService = {
   descontarStock: (productoId, cantidad) => api.patch(`/bodega/inventario/${productoId}/descontar`, { cantidad }),
   alertas: () => api.get('/bodega/alertas'),
 };
+
 
 export default api;
