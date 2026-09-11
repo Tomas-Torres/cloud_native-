@@ -24,6 +24,11 @@ microservices:
 jwt:
   secret: ${JWT_SECRET:MiClaveSecretaParaJWTLuminaRetail2024SuperSegura256bits!}
 
+#Microsoft Azure
+azure:
+  tenant-id: ${AZURE_TENANT_ID:f7592987-1fb4-4045-afea-34bb5a3fe9d7}
+  client-id: ${AZURE_CLIENT_ID:262adf80-2a1e-4193-a2bc-df28650eb1bc}
+
 # Circuit Breaker (Resilience4j) - protege las llamadas a los microservicios
 resilience4j:
   circuitbreaker:

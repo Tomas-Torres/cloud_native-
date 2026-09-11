@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/api';
+import { useMsal } from '@azure/msal-react';
+import { adminLoginRequest } from '../config/authConfig';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,6 +14,7 @@ function LoginPage() {
   const [error, setError] = useState('');
   const { login, loading, setLoading } = useAuth();
   const navigate = useNavigate();
+  const { instance } = useMsal();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,6 +48,50 @@ function LoginPage() {
       } else {
         setError(msg || 'Credenciales incorrectas. Intenta de nuevo.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const decodeJwt = (token) => {
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(decodeURIComponent(atob(payload).split('').map(
+        (c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')
+      ).join('')));
+    } catch {
+      return null;
+    }
+  };
+
+  const handleAzureLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const loginResult = await instance.loginPopup({ scopes: ['openid', 'profile'] });
+      let tokenResult;
+      try {
+        tokenResult = await instance.acquireTokenSilent({ ...adminLoginRequest, account: loginResult.account });
+      } catch {
+        tokenResult = await instance.acquireTokenPopup(adminLoginRequest);
+      }
+
+      const claims = decodeJwt(tokenResult.accessToken);
+      const roles = claims?.roles || [];
+      const rol = roles.some((r) => r.toUpperCase() === 'ADMIN') ? 'ADMIN' : 'USER';
+
+      const userData = {
+        id: claims?.oid,
+        nombre: claims?.name || loginResult.account.name,
+        email: claims?.preferred_username || loginResult.account.username,
+        rol,
+      };
+
+      login(userData, tokenResult.accessToken);
+      navigate(rol === 'ADMIN' ? '/admin' : '/');
+    } catch (err) {
+      console.error('Error en login con Azure:', err);
+      setError('No se pudo iniciar sesión con Microsoft. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -114,6 +161,24 @@ function LoginPage() {
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="px-2 bg-white dark:bg-gray-800 text-gray-400">o</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAzureLogin}
+          disabled={loading}
+          className="btn-secondary w-full disabled:opacity-50"
+        >
+          Ingresar con Microsoft Azure
+        </button>
 
         <p className="text-sm text-center mt-6 text-gray-500">
           ¿No tienes cuenta?{' '}
