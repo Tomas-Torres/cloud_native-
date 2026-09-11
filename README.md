@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Tienda Retail Lumina - Microservicios
 
 Plataforma de retail migrada de monolito a **Arquitectura de Microservicios** para resolver problemas de saturacion en horas peak.
