@@ -22,11 +22,6 @@ import java.util.List;
  * Ambos terminan como GrantedAuthority "ROLE_ADMIN", para que el resto del
  * Gateway (o de los microservicios, si migran a validar el JWT ellos
  * mismos) no tenga que saber de cuál de los dos emisores vino el token.
- *
- * IMPORTANTE: para que el claim "roles" llegue en el token de Azure hay
- * que definir "App roles" en el App Registration (Azure Portal -> App
- * roles) y asignarle ese rol al usuario/grupo admin. Sin eso, el token de
- * Azure no trae "roles" y esta clase no le asigna ROLE_ADMIN.
  */
 @Component
 public class JwtRoleConverter implements Converter<Jwt, AbstractAuthenticationToken> {
