@@ -27,3 +27,5 @@ Thumbs.db
 # Carpeta de respaldo / version antigua
 -Posibles cambios-/
 db_productos_backup.sql
+
+.env
