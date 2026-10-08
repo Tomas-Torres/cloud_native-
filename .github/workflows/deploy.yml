@@ -45,4 +45,8 @@ jobs:
             ghcr.io/${{ env.OWNER }}/${{ matrix.service }}:latest
             ghcr.io/${{ env.OWNER }}/${{ matrix.service }}:${{ github.sha }}
           cache-from: type=gha
+<<<<<<< HEAD
           cache-to: type=gha,mode=max
+=======
+          cache-to: type=gha,mode=max
+>>>>>>> 782aeb8009af9f900eef6ed35977ac883f57b42e
